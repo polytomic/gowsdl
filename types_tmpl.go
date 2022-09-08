@@ -24,7 +24,7 @@ var typesTmpl = `
 	const (
 		{{with .Restriction}}
 			{{range .Enumeration}}
-				{{if .Doc}} {{.Doc | comment}} {{end}}
+				{{- if .Doc}} {{.Doc | comment}} {{end }}
 				{{$typeName}}{{$value := replaceReservedWords .Value}}{{$value | makePublic}} {{$typeName}} = "{{goString .Value}}" {{end}}
 		{{end}}
 	)
@@ -46,12 +46,13 @@ var typesTmpl = `
 {{define "Attributes"}}
     {{ $targetNamespace := getNS }}
 	{{range .}}
-		{{if .Doc}} {{.Doc | comment}} {{end}}
-		{{ if ne .Type "" }}
+		{{- if .Doc}} {{.Doc | comment}}
+		{{end -}}
+		{{ if ne .Type "" -}}
 			{{ normalize .Name | makeFieldPublic}} {{toGoType .Type false}} ` + "`" + `xml:"{{with $targetNamespace}}{{.}} {{end}}{{.Name}},attr,omitempty" json:"{{.Name}},omitempty"` + "`" + `
-		{{ else }}
+		{{- else -}}
 			{{ normalize .Name | makeFieldPublic}} string ` + "`" + `xml:"{{with $targetNamespace}}{{.}} {{end}}{{.Name}},attr,omitempty" json:"{{.Name}},omitempty"` + "`" + `
-		{{ end }}
+		{{- end }}
 	{{end}}
 {{end}}
 
@@ -80,12 +81,13 @@ var typesTmpl = `
 
 {{define "Elements"}}
 	{{range .}}
-		{{if ne .Ref ""}}
+		{{- if ne .Ref "" -}}
 			{{removeNS .Ref | replaceReservedWords  | makePublic}} {{if eq .MaxOccurs "unbounded"}}[]{{end}}{{toGoType .Ref .Nillable }} ` + "`" + `xml:"{{.Ref | removeNS}},omitempty" json:"{{.Ref | removeNS}},omitempty"` + "`" + `
-		{{else}}
-		{{if not .Type}}
-			{{if .SimpleType}}
-				{{if .Doc}} {{.Doc | comment}} {{end}}
+		{{ else -}}
+		{{ if not .Type -}}
+			{{ if .SimpleType -}}
+				{{if .Doc}} {{.Doc | comment}}
+				{{end -}}
 				{{if ne .SimpleType.List.ItemType ""}}
 					{{ normalize .Name | makeFieldPublic}} []{{toGoType .SimpleType.List.ItemType false}} ` + "`" + `xml:"{{.Name}},omitempty" json:"{{.Name}},omitempty"` + "`" + `
 				{{else}}
@@ -94,10 +96,11 @@ var typesTmpl = `
 			{{else}}
 				{{template "ComplexTypeInline" .}}
 			{{end}}
-		{{else}}
-			{{if .Doc}}{{.Doc | comment}} {{end}}
+		{{ else }}
+			{{- if .Doc}}{{.Doc | comment}}
+			{{end -}}
 			{{replaceAttrReservedWords .Name | makeFieldPublic}} {{if eq .MaxOccurs "unbounded"}}[]{{end}}{{toGoType .Type .Nillable }} ` + "`" + `xml:"{{.Name}},omitempty" json:"{{.Name}},omitempty"` + "`" + ` {{end}}
-		{{end}}
+		{{end -}}
 	{{end}}
 {{end}}
 
@@ -150,7 +153,7 @@ var typesTmpl = `
 				{{else}}
 					type {{$typeName}} interface{}
 				{{end}}
-			
+
 				{{if .Restriction.Enumeration}}
 				const (
 					{{with .Restriction}}

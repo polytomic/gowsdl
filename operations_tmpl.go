@@ -16,17 +16,15 @@ var opsTmpl = `
 			{{$requestType := findType .Input.Message | replaceReservedWords | makePublic}}
 			{{$responseType := findType .Output.Message | replaceReservedWords | makePublic}}
 
-			{{/*if ne $soapAction ""*/}}
 			{{if gt $faults 0}}
 			// Error can be either of the following types:
 			// {{range .Faults}}
 			//   - {{.Name}} {{.Doc}}{{end}}{{end}}
-			{{if ne .Doc ""}}/* {{.Doc}} */{{end}}
+			{{if ne .Doc ""}}/* {{.Doc}} */
+			{{end -}}
 			{{makePublic .Name | replaceReservedWords}} ({{if ne $requestType ""}}request *{{$requestType}}{{end}}) ({{if ne $responseType ""}}*{{$responseType}}, {{end}}error)
-			{{/*end*/}}
 			{{makePublic .Name | replaceReservedWords}}Context (ctx context.Context, {{if ne $requestType ""}}request *{{$requestType}}{{end}}) ({{if ne $responseType ""}}*{{$responseType}}, {{end}}error)
-			{{/*end*/}}
-		{{end}}
+		{{- end}}
 	}
 
 	type {{$privateType}} struct {
