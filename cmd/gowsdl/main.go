@@ -67,9 +67,10 @@ var Name string
 var vers = flag.Bool("v", false, "Shows gowsdl version")
 var pkg = flag.String("p", "myservice", "Package under which code will be generated")
 var outFile = flag.String("o", "myservice.go", "File where the generated code will be saved")
-var dir = flag.String("d", "./", "Directory under which package directory will be created")
+var dir = flag.String("d", "", "Output directory; defaults to package name if not specified")
 var insecure = flag.Bool("i", false, "Skips TLS Verification")
 var makePublic = flag.Bool("make-public", true, "Make the generated types public/exported")
+var makeServer = flag.Bool("server", false, "Generate server code")
 
 func init() {
 	log.SetFlags(0)
@@ -114,10 +115,15 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	pkg := filepath.Join(*dir, *pkg)
-	err = os.Mkdir(pkg, 0744)
+	if dir == nil || *dir == "" {
+		dir = pkg
+	}
+	err = os.MkdirAll(*dir, 0744)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	file, err := os.Create(filepath.Join(pkg, *outFile))
+	file, err := os.Create(filepath.Join(*dir, *outFile))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -139,23 +145,24 @@ func main() {
 	file.Write(source)
 
 	// server
-	serverFile, err := os.Create(pkg + "/" + "server" + *outFile)
-	if err != nil {
-		log.Fatalln(err)
+	if *makeServer {
+		serverFile, err := os.Create(*dir + "/" + "server" + *outFile)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer serverFile.Close()
+
+		serverData := new(bytes.Buffer)
+		serverData.Write(gocode["server_header"])
+		serverData.Write(gocode["server_wsdl"])
+		serverData.Write(gocode["server"])
+
+		serverSource, err := format.Source(serverData.Bytes())
+		if err != nil {
+			serverFile.Write(serverData.Bytes())
+			log.Fatalln(err)
+		}
+		serverFile.Write(serverSource)
 	}
-	defer serverFile.Close()
-
-	serverData := new(bytes.Buffer)
-	serverData.Write(gocode["server_header"])
-	serverData.Write(gocode["server_wsdl"])
-	serverData.Write(gocode["server"])
-
-	serverSource, err := format.Source(serverData.Bytes())
-	if err != nil {
-		serverFile.Write(serverData.Bytes())
-		log.Fatalln(err)
-	}
-	serverFile.Write(serverSource)
-
 	log.Println("Done 👍")
 }
