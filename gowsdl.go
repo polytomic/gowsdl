@@ -517,6 +517,7 @@ var xsd2GoTypes = map[string]string{
 	"anytype":       "AnyType",
 	"ncname":        "NCName",
 	"anyuri":        "AnyURI",
+	"duration":      "string",
 }
 
 func removeNS(xsdType string) string {
